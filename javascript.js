@@ -1,34 +1,71 @@
 var ctx;
 var timer, timer2;
 var distanceVal = 100;
-var colorVal = 111111;
+var thecolor = "#111111";
 var thicknessVal = 1;
+var modeVal = 0;
 var lastDetail = 1;
-var settings = new Array("color", "distance", "thickness");
+var settings = new Array("color", "distance", "thickness", "mode");
 var selectedSetting = 0;
+var drawMode = new Array("linear", "smooth");
+var selectedDrawMode = 0;
+var smoothing = false;
 var detail;
+var lastSmooth = {x: -2, y: 0};
+var points;
 function draw() {
-  var canvas = document.getElementById('canvas');
+	var canvas = document.getElementById('canvas');
 	if (canvas.getContext) {
 		ctx = canvas.getContext("2d");
 		fit();
-		ctx.strokeStyle = "#"+colorVal;
+		ctx.strokeStyle = thecolor;
 	}
 	ctx.fillStyle = "green";
 	ctx.font = "bold 16px Arial";
 	ctx.fillText("Canvas Sketch by Christoph Buehler", 10, 30);
 	points = new Array();
 	canvas.addEventListener('click', function(evt) {
-		var mousePos = getMousePos(canvas, evt);
-		points.push(mousePos);
-		ctx.beginPath();
-		for (var i=0;i<points.length;i++) {
-			if (calcDistance(points[points.length-1], points[i]) < distanceVal) {
-				ctx.lineWidth = thicknessVal;
-				ctx.moveTo(points[points.length-1].x, points[points.length-1].y);
-				ctx.lineTo(points[i].x, points[i].y);
-				ctx.stroke();
+		if (drawMode[selectedDrawMode] == "linear") {
+			var mousePos = getMousePos(canvas, evt);
+			points.push(mousePos);
+			ctx.beginPath();
+			for (var i=0;i<points.length;i++) {
+				if (calcDistance(points[points.length-1], points[i]) < distanceVal) {
+					ctx.lineWidth = thicknessVal;
+					ctx.moveTo(points[points.length-1].x, points[points.length-1].y);
+					ctx.lineTo(points[i].x, points[i].y);
+					ctx.stroke();
+				}
 			}
+			ctx.closePath();
+		}
+	});
+	canvas.addEventListener('mousedown', function(evt) {
+		if (drawMode[selectedDrawMode] == "smooth")
+			smoothing = true;
+	});
+	canvas.addEventListener('mouseup', function(evt) {
+		if (drawMode[selectedDrawMode] == "smooth") {
+			smoothing = false;
+			lastSmooth = {x: -2, y: 0};
+		}
+	});
+	canvas.addEventListener('mousemove', function(evt) {
+		if (drawMode[selectedDrawMode] == "smooth" && smoothing) {
+			var mousePos = getMousePos(canvas, evt);
+			ctx.strokeStyle = thecolor;
+			ctx.lineJoin = "round";
+			ctx.lineWidth = thicknessVal+5;
+			ctx.beginPath();
+			if (lastSmooth.x != -2)
+				ctx.moveTo(lastSmooth.x, lastSmooth.y);
+			else
+				ctx.moveTo(mousePos.x-1, mousePos.y-1);
+			
+			ctx.lineTo(mousePos.x, mousePos.y);
+			ctx.closePath();
+			ctx.stroke();
+			lastSmooth = mousePos;
 		}
 	});
 	window.addEventListener('keydown',doKeyDown,true);
@@ -73,8 +110,20 @@ function wheel(evt) {
 				thicknessVal = 1;
 			thickness();
 		break;
+		case "mode":
+			detail = ('wheelDelta' in evt) ? evt.wheelDelta : (-40 * evt.detail);
+			modeVal = detail;
+			if (modeVal < 0)
+				selectedDrawMode--;
+			else
+				selectedDrawMode++;
+			if (selectedDrawMode <= -1)
+				selectedDrawMode = drawMode.length-1;
+			else if (selectedDrawMode >= drawMode.length)	
+				selectedDrawMode = 0;
+			mode();
+		break;
 	}
-
 }
 function switchSettings(code) {
 	if (code == 39)
@@ -85,7 +134,6 @@ function switchSettings(code) {
 		selectedSetting = settings.length-1;
 	else if (selectedSetting >= settings.length)	
 		selectedSetting = 0;
-	
 	switch(settings[selectedSetting]) {
 		case "color":
 		color();
@@ -95,6 +143,9 @@ function switchSettings(code) {
 		break;
 		case "thickness":
 		thickness();
+		break;
+		case "mode":
+		mode();
 		break;
 	}
 }
@@ -113,7 +164,7 @@ function color() {
 	ctx.fillStyle = "green";
 	ctx.font = "normal 16px Arial";
 	
-	var thecolor = "#"+((1<<24)*Math.random()|0).toString(16);
+	thecolor = "#"+((1<<24)*Math.random()|0).toString(16);
 	ctx.strokeStyle = thecolor;
 	
 	ctx.fillText("color: "+thecolor, canvas.width-120, 30);
@@ -125,6 +176,14 @@ function thickness() {
 	ctx.fillStyle = "green";
 	ctx.font = "normal 16px Arial";
 	ctx.fillText("thickness: "+thicknessVal, canvas.width-120, 30);
+	timer = setTimeout(hideSettings, 2000);
+}
+function mode() {
+	hideSettings();
+	clearTimeout(timer);
+	ctx.fillStyle = "green";
+	ctx.font = "normal 16px Arial";
+	ctx.fillText("mode: "+drawMode[selectedDrawMode], canvas.width-120, 30);
 	timer = setTimeout(hideSettings, 2000);
 }
 function hideSettings() {
