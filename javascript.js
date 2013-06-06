@@ -77,7 +77,9 @@ function draw() {
 			ctx.fillText("Canvas Sketch by Christoph Buehler", 10, 30);
 			points = [];
 		} else if (evt.keyCode == 83) {
-			var data = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+			var data = canvas.toDataURL("image/png");
+			var win = window.open(data, '_blank');
+			win.focus();
 		}
 		else
 			switchSettings(evt.keyCode);
