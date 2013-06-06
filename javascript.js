@@ -194,6 +194,9 @@ function hideSettings() {
 function fit() {
 	ctx.canvas.width  = window.innerWidth;
 	ctx.canvas.height = window.innerHeight;
+	ctx.fillStyle = "green";
+	ctx.font = "bold 16px Arial";
+	ctx.fillText("Canvas Sketch by Christoph Buehler", 10, 30);
 	points=[];
 }
 function getMousePos(canvas, evt) {
