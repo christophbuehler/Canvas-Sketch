@@ -3,6 +3,9 @@
 <head>
   <script src="javascript.js"></script>
 	<style>
+		* {
+			cursor: normal;
+		}
 		html, body {
 			width:  100%;
 			height: 100%;
@@ -10,11 +13,16 @@
 			padding: 0;
 			overflow: hidden;
 		}
+		embed, noembed {
+			width: 0;
+			height: 0;
+		}
 	</style>
 </head>
 <body onload="draw()" onresize="fit()">
 	<canvas id="canvas" oncontextmenu="javascript: points=[]; return false">
 	Your Browser does not support HTML Canvas.
 	</canvas>
+	<!-- <embed src="music.mp3" autostart=true loop=false volume=100 hidden=true><noembed><bgsound src="yourfile.mp3"></noembed> -->
 </body>
 </html>
